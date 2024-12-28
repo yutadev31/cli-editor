@@ -1,12 +1,8 @@
 [package]
-name = "editor"
+name = "utils"
 version = "0.1.0"
 edition = "2021"
-
-[lib]
-path = "src/editor.rs"
 
 [dependencies]
 anyhow = { workspace = true }
 termion = { workspace = true }
-utils = { path = "../utils" }

@@ -1,5 +1,9 @@
 [workspace]
-members = ["crates/editor"]
+members = ["crates/editor", "crates/utils"]
+
+[workspace.dependencies]
+termion = "4.0.3"
+anyhow = "1.0.95"
 
 [package]
 name = "ce"
@@ -7,5 +11,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-termion = "4.0.3"
+anyhow = { workspace = true }
+termion = { workspace = true }
 editor = { path = "crates/editor" }
+clap = { version = "4.5.23", features = ["derive"] }
