@@ -43,18 +43,22 @@ fn main() -> Result<()> {
     editor.draw(&mut stdout);
 
     for evt in stdin.events() {
-        match evt.unwrap() {
-            Event::Key(Key::Ctrl('c')) => return Ok(()),
-            Event::Key(Key::Char('j')) => {
-                editor.scroll_by(1);
-                editor.draw(&mut stdout);
-            }
-            Event::Key(Key::Char('k')) => {
-                editor.scroll_by(-1);
-                editor.draw(&mut stdout);
-            }
-            _ => {}
-        }
+        if editor.on_event(evt.unwrap()) != 0 {
+            return Ok(());
+        };
+        editor.draw(&mut stdout);
+        // match evt.unwrap() {
+        //     Event::Key(Key::Ctrl('c')) => return Ok(()),
+        //     Event::Key(Key::Char('j')) => {
+        //         editor.scroll_by(1);
+        //         editor.draw(&mut stdout);
+        //     }
+        //     Event::Key(Key::Char('k')) => {
+        //         editor.scroll_by(-1);
+        //         editor.draw(&mut stdout);
+        //     }
+        //     _ => {}
+        // }
     }
 
     return Ok(());
