@@ -12,7 +12,7 @@ use termion::{clear, input::TermRead, raw::IntoRawMode, screen::IntoAlternateScr
 #[command(version, about)]
 struct Args {
     #[arg()]
-    path: Option<String>,
+    path: String,
 }
 
 fn main() -> Result<()> {
@@ -29,15 +29,13 @@ fn main() -> Result<()> {
 
     stdout.flush().unwrap();
 
-    let mut editor = match args.path {
-        Some(path) => Editor::open(PathBuf::from(path))?,
-        None => Editor::new(),
-    };
+    let path = PathBuf::from(args.path);
+    let mut editor = Editor::open(path.clone());
 
     editor.draw(&mut stdout);
 
     for evt in stdin.events() {
-        if editor.on_event(evt.unwrap()) != 0 {
+        if editor.on_event(evt.unwrap(), path.clone()) != 0 {
             return Ok(());
         };
         editor.draw(&mut stdout);

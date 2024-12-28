@@ -1,6 +1,10 @@
 pub mod buf;
 
-use std::{fs::read_to_string, io::Write, path::PathBuf};
+use std::{
+    fs::{read_to_string, write},
+    io::Write,
+    path::PathBuf,
+};
 
 use anyhow::Result;
 use termion::{
@@ -31,13 +35,21 @@ impl Editor {
         Self::from(String::new())
     }
 
-    pub fn open(path: PathBuf) -> Result<Self> {
-        let buf = read_to_string(path)?;
-        Ok(Self::from(buf))
+    pub fn open(path: PathBuf) -> Self {
+        let mut buf = match read_to_string(path) {
+            Ok(buf) => buf,
+            Err(_) => String::new(),
+        };
+
+        if buf.is_empty() {
+            buf = String::from("\n");
+        }
+
+        Self::from(buf)
     }
 
     pub fn draw<T: Write>(&self, stdout: &mut T) {
-        let (term_w, term_h) = terminal_size();
+        let (_, term_h) = terminal_size();
 
         let buf = self.buf.to_string();
         let lines = buf.lines();
@@ -69,7 +81,7 @@ impl Editor {
     }
 
     pub fn cursor_by(&mut self, dir: Direction) {
-        let (term_w, term_h) = terminal_size();
+        let (_, term_h) = terminal_size();
         let len_count = self.buf.line_count();
 
         match dir {
@@ -119,7 +131,7 @@ impl Editor {
         }
     }
 
-    pub fn on_event(&mut self, evt: Event) -> u8 {
+    pub fn on_event(&mut self, evt: Event, path: PathBuf) -> u8 {
         match self.mode {
             EditorMode::Normal => match evt {
                 Event::Key(Key::Char('i')) => {
@@ -138,6 +150,7 @@ impl Editor {
                 Event::Key(Key::Char('l')) => {
                     self.cursor_by(Direction::Right);
                 }
+                Event::Key(Key::Ctrl('w')) => write(path, self.buf.to_string()).unwrap(),
                 _ => {}
             },
             EditorMode::Insert => match evt {
@@ -161,7 +174,7 @@ impl Editor {
                         self.cursor_by(Direction::Left);
                     } else if self.cursor.y > 0 {
                         self.buf.join_lines(self.cursor.y - 1);
-                        self.cursor_by(Direction::Left);
+                        self.cursor_by(Direction::Up);
 
                         let line_len = self.buf.line_length(self.cursor.y);
                         self.cursor.x = line_len;
