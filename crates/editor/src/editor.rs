@@ -7,7 +7,7 @@ use std::{
 };
 
 use termion::{
-    clear, cursor,
+    clear, color, cursor,
     event::{Event, Key},
 };
 use utils::{cli::terminal_size, types::Direction, types::Vec2};
@@ -47,35 +47,76 @@ impl Editor {
     }
 
     pub fn draw<T: Write>(&self, stdout: &mut T) {
-        let (_, term_h) = terminal_size();
+        let (term_w, term_h) = terminal_size();
 
         let buf = self.buf.to_string();
         let lines = buf.lines();
 
         write!(stdout, "{}", clear::All).unwrap();
-        write!(stdout, "{}", cursor::Goto(1, 1)).unwrap();
 
-        let lines: Vec<&str> = lines.skip(self.offset.y).take(term_h).collect();
-        write!(stdout, "{}", lines.join("\r\n")).unwrap();
+        // 行番号を表示
+        let len_count = self.buf.line_count();
+        let line_num_w = len_count.to_string().len();
+        let line_numbers: Vec<String> = (1..=len_count)
+            .skip(self.offset.y)
+            .take(term_h - 1)
+            .map(|x| x.to_string())
+            .collect();
+        write!(stdout, "{}", cursor::Goto(1, 2)).unwrap();
+        write!(stdout, "{}", line_numbers.join("\r\n")).unwrap();
+
+        // コードを表示
+        lines
+            .skip(self.offset.y)
+            .take(term_h - 1)
+            .enumerate()
+            .for_each(|(index, line)| {
+                write!(
+                    stdout,
+                    "{}",
+                    cursor::Goto(2 + line_num_w as u16, 2 + index as u16)
+                )
+                .unwrap();
+                write!(stdout, "{}", line).unwrap();
+            });
+
+        // 情報バーを表示
+        write!(stdout, "{}", cursor::Goto(1, 1)).unwrap();
+        write!(stdout, "{}", color::Bg(color::White)).unwrap();
+        write!(stdout, "{}", color::Fg(color::Black)).unwrap();
+        write!(stdout, "{}", " ".repeat(term_w as usize)).unwrap();
+        write!(stdout, "{}", cursor::Goto(1, 1)).unwrap();
+        write!(
+            stdout,
+            " {} {},{}",
+            match self.mode {
+                EditorMode::Normal => "NORMAL",
+                EditorMode::Insert => "INSERT",
+                EditorMode::Visual => "VISUAL",
+                EditorMode::Command => "COMMAND",
+            },
+            self.cursor.x,
+            self.cursor.y,
+        )
+        .unwrap();
+        write!(stdout, "{}", color::Bg(color::Reset)).unwrap();
+        write!(stdout, "{}", color::Fg(color::Reset)).unwrap();
 
         write!(
             stdout,
             "{}",
             cursor::Goto(
-                (self.cursor.x + 1 - self.offset.x) as u16,
-                (self.cursor.y + 1 - self.offset.y) as u16
+                (self.cursor.x + 2 - self.offset.x + line_num_w) as u16,
+                (self.cursor.y + 2 - self.offset.y) as u16
             )
         )
         .unwrap();
+
         stdout.flush().unwrap();
     }
 
     pub fn scroll_by(&mut self, y: isize) {
-        let y = self.offset.y as isize + y;
-        if y < 0 {
-            return;
-        }
-        self.offset.y = y as usize;
+        self.offset.y = (self.offset.y as isize + y) as usize;
     }
 
     pub fn cursor_by(&mut self, dir: Direction) {
@@ -102,7 +143,7 @@ impl Editor {
                         self.cursor.x = line_len;
                     }
 
-                    if self.offset.y + term_h <= self.cursor.y {
+                    if self.cursor.y > self.offset.y + term_h - 2 {
                         self.scroll_by(1);
                     }
                 }
