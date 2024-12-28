@@ -1,1 +1,1 @@
-# cli editor (仮)
+# cli editor
