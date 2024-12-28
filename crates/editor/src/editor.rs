@@ -4,10 +4,11 @@ use std::{fs::read_to_string, io::Write, path::PathBuf};
 
 use anyhow::Result;
 use termion::{
-    clear, cursor,
+    clear,
+    cursor::{self, Left},
     event::{Event, Key},
 };
-use utils::{cli::terminal_size, vec::Vec2};
+use utils::{cli::terminal_size, types::Direction, types::Vec2};
 
 use crate::buf::CodeBuffer;
 
@@ -67,9 +68,58 @@ impl Editor {
         self.offset.y = y as usize;
     }
 
-    pub fn on_event(&mut self, evt: Event) -> u8 {
+    pub fn cursor_by(&mut self, dir: Direction) {
         let (term_w, term_h) = terminal_size();
+        let len_count = self.buf.line_count();
 
+        match dir {
+            Direction::Left => {
+                if self.cursor.x > 0 {
+                    self.cursor.x -= 1;
+                }
+            }
+            Direction::Down => {
+                if self.cursor.y < len_count {
+                    self.cursor.y += 1;
+
+                    if len_count <= self.cursor.y {
+                        self.cursor.y -= 1;
+                        return;
+                    }
+
+                    let line_len = self.buf.line_length(self.cursor.y);
+                    if self.cursor.x > line_len {
+                        self.cursor.x = line_len;
+                    }
+
+                    if self.offset.y + term_h <= self.cursor.y {
+                        self.scroll_by(1);
+                    }
+                }
+            }
+            Direction::Up => {
+                if self.cursor.y > 0 {
+                    self.cursor.y -= 1;
+
+                    let line_len = self.buf.line_length(self.cursor.y);
+                    if self.cursor.x > line_len {
+                        self.cursor.x = line_len;
+                    }
+
+                    if self.offset.y > self.cursor.y {
+                        self.scroll_by(-1);
+                    }
+                }
+            }
+            Direction::Right => {
+                if self.cursor.x < self.buf.line_length(self.cursor.y) {
+                    self.cursor.x += 1;
+                }
+            }
+        }
+    }
+
+    pub fn on_event(&mut self, evt: Event) -> u8 {
         match self.mode {
             EditorMode::Normal => match evt {
                 Event::Key(Key::Char('i')) => {
@@ -77,48 +127,16 @@ impl Editor {
                 }
                 Event::Key(Key::Char('q')) => return 1,
                 Event::Key(Key::Char('h')) => {
-                    if self.cursor.x > 0 {
-                        self.cursor.x -= 1;
-                    }
+                    self.cursor_by(Direction::Left);
                 }
                 Event::Key(Key::Char('j')) => {
-                    let len_count = self.buf.line_count();
-                    if self.cursor.y < len_count {
-                        self.cursor.y += 1;
-
-                        if len_count <= self.cursor.y {
-                            self.cursor.y -= 1;
-                            return 0;
-                        }
-
-                        let line_len = self.buf.line_length(self.cursor.y);
-                        if self.cursor.x > line_len {
-                            self.cursor.x = line_len;
-                        }
-
-                        if self.offset.y + term_h <= self.cursor.y {
-                            self.scroll_by(1);
-                        }
-                    }
+                    self.cursor_by(Direction::Down);
                 }
                 Event::Key(Key::Char('k')) => {
-                    if self.cursor.y > 0 {
-                        self.cursor.y -= 1;
-
-                        let line_len = self.buf.line_length(self.cursor.y);
-                        if self.cursor.x > line_len {
-                            self.cursor.x = line_len;
-                        }
-
-                        if self.offset.y > self.cursor.y {
-                            self.scroll_by(-1);
-                        }
-                    }
+                    self.cursor_by(Direction::Up);
                 }
                 Event::Key(Key::Char('l')) => {
-                    if self.cursor.x < self.buf.line_length(self.cursor.y) {
-                        self.cursor.x += 1;
-                    }
+                    self.cursor_by(Direction::Right);
                 }
                 _ => {}
             },
@@ -135,15 +153,15 @@ impl Editor {
                 }
                 Event::Key(Key::Char(c)) => {
                     self.buf.insert(c, self.cursor.x, self.cursor.y);
-                    self.cursor.x += 1;
+                    self.cursor_by(Direction::Right);
                 }
                 Event::Key(Key::Backspace) => {
                     if self.cursor.x > 0 {
                         self.buf.delete(self.cursor.x - 1, self.cursor.y);
-                        self.cursor.x -= 1;
+                        self.cursor_by(Direction::Left);
                     } else if self.cursor.y > 0 {
                         self.buf.join_lines(self.cursor.y - 1);
-                        self.cursor.y -= 1;
+                        self.cursor_by(Direction::Left);
 
                         let line_len = self.buf.line_length(self.cursor.y);
                         self.cursor.x = line_len;
