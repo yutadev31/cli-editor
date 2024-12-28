@@ -2,17 +2,6 @@ pub struct CodeBuffer {
     lines: Vec<String>,
 }
 
-pub struct Node {
-    pub node_type: NodeType,
-    pub start: usize,
-    pub length: usize,
-}
-
-pub enum NodeType {
-    Original,
-    Added,
-}
-
 impl CodeBuffer {
     pub fn new(buf: String) -> Self {
         Self {
