@@ -6,10 +6,8 @@ use std::{
     path::PathBuf,
 };
 
-use anyhow::Result;
 use termion::{
-    clear,
-    cursor::{self, Left},
+    clear, cursor,
     event::{Event, Key},
 };
 use utils::{cli::terminal_size, types::Direction, types::Vec2};
