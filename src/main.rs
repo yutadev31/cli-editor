@@ -26,12 +26,10 @@ fn main() -> Result<()> {
         .unwrap();
 
     write!(stdout, "{}", clear::All)?;
-
     stdout.flush().unwrap();
 
     let path = PathBuf::from(args.path);
     let mut editor = Editor::open(path.clone());
-
     editor.draw(&mut stdout);
 
     for evt in stdin.events() {
