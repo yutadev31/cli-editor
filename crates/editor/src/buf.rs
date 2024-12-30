@@ -13,6 +13,10 @@ impl CodeBuffer {
         self.lines[y].insert(x, c);
     }
 
+    pub fn insert_str(&mut self, s: &str, x: usize, y: usize) {
+        self.lines[y].insert_str(x, s);
+    }
+
     pub fn delete(&mut self, x: usize, y: usize) {
         self.lines[y].remove(x);
     }

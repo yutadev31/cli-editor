@@ -189,8 +189,7 @@ impl Editor {
                     self.cursor.x = 0;
                 }
                 Event::Key(Key::Char('\t')) => {
-                    self.buf.insert(' ', self.cursor.x, self.cursor.y);
-                    self.buf.insert(' ', self.cursor.x, self.cursor.y);
+                    self.buf.insert_str("  ", self.cursor.x, self.cursor.y);
                     self.cursor.x += 2;
                 }
                 Event::Key(Key::Char(c)) => {
