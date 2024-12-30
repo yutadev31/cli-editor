@@ -1,5 +1,5 @@
-pub mod buf;
-pub mod mode;
+mod buf;
+mod mode;
 
 use std::{
     fs::{read_to_string, write},
@@ -18,9 +18,9 @@ use crate::buf::CodeBuffer;
 
 pub struct Editor {
     buf: CodeBuffer,
+    mode: EditorMode,
     cursor: Vec2<usize>,
     offset: Vec2<usize>,
-    mode: EditorMode,
 }
 
 impl Editor {
@@ -236,9 +236,9 @@ impl From<String> for Editor {
     fn from(value: String) -> Self {
         Self {
             buf: CodeBuffer::new(value),
-            mode: EditorMode::Normal,
-            cursor: Vec2 { x: 0, y: 0 },
-            offset: Vec2 { x: 0, y: 0 },
+            mode: EditorMode::default(),
+            cursor: Vec2::default(),
+            offset: Vec2::default(),
         }
     }
 }
