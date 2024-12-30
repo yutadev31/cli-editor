@@ -180,6 +180,9 @@ impl Editor {
                     self.cursor_by(Direction::Right);
                 }
                 Event::Key(Key::Ctrl('w')) => write(path, self.buf.to_string()).unwrap(),
+                Event::Key(Key::Char(':')) => {
+                    self.mode = EditorMode::Command;
+                }
                 _ => {}
             },
             EditorMode::Insert => match evt {
@@ -224,7 +227,14 @@ impl Editor {
                 _ => {}
             },
             EditorMode::Visual => {}
-            EditorMode::Command => {}
+            EditorMode::Command => {
+                match evt {
+                    Event::Key(Key::Ctrl('c')) => {
+                        self.mode = EditorMode::Normal;
+                    }
+                    _ => {}
+                }
+            }
         }
 
         0
