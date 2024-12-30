@@ -1,4 +1,5 @@
 pub mod buf;
+pub mod mode;
 
 use std::{
     fs::{read_to_string, write},
@@ -6,6 +7,7 @@ use std::{
     path::PathBuf,
 };
 
+use mode::EditorMode;
 use termion::{
     clear, color, cursor,
     event::{Event, Key},
@@ -19,13 +21,6 @@ pub struct Editor {
     cursor: Vec2<usize>,
     offset: Vec2<usize>,
     mode: EditorMode,
-}
-
-pub enum EditorMode {
-    Normal,
-    Command,
-    Insert,
-    Visual,
 }
 
 impl Editor {
@@ -89,12 +84,7 @@ impl Editor {
         write!(
             stdout,
             " {} {},{}",
-            match self.mode {
-                EditorMode::Normal => "NORMAL",
-                EditorMode::Insert => "INSERT",
-                EditorMode::Visual => "VISUAL",
-                EditorMode::Command => "COMMAND",
-            },
+            self.mode.to_string(),
             self.cursor.x,
             self.cursor.y,
         )
