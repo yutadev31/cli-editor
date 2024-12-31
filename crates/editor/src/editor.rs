@@ -164,6 +164,12 @@ impl Editor {
                     Event::Key(Key::Char('l')) => {
                         self.cursor.move_by(&self.buf, 1, 0);
                     }
+                    Event::Key(Key::Char('0')) => {
+                        self.cursor.move_x_to(&self.buf, 0);
+                    }
+                    Event::Key(Key::Char('$')) => {
+                        self.cursor.move_x_to(&self.buf, self.buf.line_length(cursor_y));
+                    }
                     Event::Key(Key::Char('v')) => {
                         self.mode = EditorMode::Visual;
                         self.visual_start = Vec2::new(cursor_x, cursor_y);
