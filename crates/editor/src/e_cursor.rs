@@ -13,7 +13,6 @@ impl EditorCursor {
         let (_, term_h) = terminal_size();
         let buf_len = buf.line_count();
         let line_len = buf.line_length(self.y);
-            
 
         match x.cmp(&0) {
             std::cmp::Ordering::Less => {
@@ -32,7 +31,7 @@ impl EditorCursor {
             }
             std::cmp::Ordering::Equal => {}
         }
-        
+
         if y < 0 {
             if self.y < -y as usize {
                 self.y = 0;

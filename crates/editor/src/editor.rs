@@ -111,7 +111,7 @@ impl Editor {
             write!(stdout, "{}", cursor::Goto(1, term_h as u16 - 1)).unwrap();
             write!(stdout, ":{}", self.cmd_buf).unwrap();
         }
-        
+
         match self.mode {
             EditorMode::Insert => write!(stdout, "{}", cursor::SteadyBar).unwrap(),
             _ => write!(stdout, "{}", cursor::SteadyBlock).unwrap(),
@@ -120,17 +120,17 @@ impl Editor {
         stdout.flush().unwrap();
     }
 
-    fn on_event_cursor(&mut self, evt: Event, _cursor_x: usize, cursor_y: usize) -> bool{
+    fn on_event_cursor(&mut self, evt: Event, _cursor_x: usize, cursor_y: usize) -> bool {
         if let Some(c) = self.key_buf {
             self.key_buf = None;
             match c {
-                'g' => match evt{
+                'g' => match evt {
                     Event::Key(Key::Char('g')) => {
                         self.cursor.move_y_to(&self.buf, 0);
                     }
-                    _ => return false
-                }
-                _ => return false
+                    _ => return false,
+                },
+                _ => return false,
             }
         } else if let Event::Key(Key::Char(c)) = evt {
             match c {
@@ -153,12 +153,13 @@ impl Editor {
                     self.cursor.move_x_to(&self.buf, 0);
                 }
                 '$' => {
-                    self.cursor.move_x_to(&self.buf, self.buf.line_length(cursor_y));
+                    self.cursor
+                        .move_x_to(&self.buf, self.buf.line_length(cursor_y));
                 }
                 'G' => {
                     self.cursor.move_y_to(&self.buf, self.buf.line_count() - 1);
                 }
-                _ => return false
+                _ => return false,
             }
         }
 
@@ -167,7 +168,7 @@ impl Editor {
 
     pub fn on_event(&mut self, evt: Event, path: PathBuf) -> u8 {
         let (cursor_x, cursor_y) = self.cursor.get_display(&self.buf);
-    
+
         match self.mode {
             EditorMode::Normal => {
                 if self.on_event_cursor(evt.clone(), cursor_x, cursor_y) {
@@ -189,7 +190,7 @@ impl Editor {
                     }
                     _ => {}
                 }
-            },
+            }
             EditorMode::Insert => match evt {
                 Event::Key(Key::Char('\n')) => {
                     if cursor_x < self.buf.line_length(cursor_y) {
@@ -246,8 +247,9 @@ impl Editor {
                     Event::Key(Key::Ctrl('c')) => {
                         self.mode = EditorMode::Normal;
                     }
-                _ => {}
-            }},
+                    _ => {}
+                }
+            }
             EditorMode::Command => match evt {
                 Event::Key(Key::Char('\n')) => {
                     match self.cmd_buf.as_str() {
