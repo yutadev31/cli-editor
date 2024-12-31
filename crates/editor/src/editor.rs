@@ -171,9 +171,9 @@ impl Editor {
                     } else if cursor_y > 0 {
                         let line_len = self.buf.line_length(cursor_y - 1);
 
-                        self.buf.join_lines(cursor_y - 1);
                         self.cursor.move_by(&self.buf, 0, -1);
                         self.cursor.move_x_to(&self.buf, line_len);
+                        self.buf.join_lines(cursor_y - 1);
                     }
                 }
                 Event::Key(Key::Delete) => {
