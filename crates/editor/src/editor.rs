@@ -146,9 +146,15 @@ impl Editor {
             },
             EditorMode::Insert => match evt {
                 Event::Key(Key::Char('\n')) => {
-                    self.buf.split_line(cursor_x, cursor_y);
-                    self.cursor.move_by(&self.buf, 0, 1);
-                    self.cursor.move_x_to(&self.buf, 0)
+                    if cursor_x < self.buf.line_length(cursor_y) {
+                        self.buf.split_line(cursor_x, cursor_y);
+                        self.cursor.move_by(&self.buf, 0, 1);
+                        self.cursor.move_x_to(&self.buf, 0)
+                    } else {
+                        self.buf.insert_line();
+                        self.cursor.move_by(&self.buf, 0, 1);
+                        self.cursor.move_x_to(&self.buf, 0);
+                    }
                 }
                 Event::Key(Key::Char('\t')) => {
                     self.buf.insert_str("  ", cursor_x, cursor_y);
@@ -163,10 +169,10 @@ impl Editor {
                         self.buf.delete(cursor_x - 1, cursor_y);
                         self.cursor.move_by(&self.buf, -1, 0);
                     } else if cursor_y > 0 {
+                        let line_len = self.buf.line_length(cursor_y - 1);
+
                         self.buf.join_lines(cursor_y - 1);
                         self.cursor.move_by(&self.buf, 0, -1);
-
-                        let line_len = self.buf.line_length(cursor_y - 1);
                         self.cursor.move_x_to(&self.buf, line_len);
                     }
                 }

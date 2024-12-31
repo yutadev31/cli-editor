@@ -31,8 +31,8 @@ impl EditorCursor {
                 self.y -= -y as usize;
             }
         } else {
-            if self.y + y as usize > buf_len {
-                self.y = buf_len;
+            if self.y + y as usize > buf_len - 1 {
+                self.y = buf_len - 1;
             } else {
                 self.y += y as usize;
             }

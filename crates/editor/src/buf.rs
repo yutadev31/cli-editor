@@ -1,12 +1,12 @@
+use utils::text::lines;
+
 pub struct CodeBuffer {
     lines: Vec<String>,
 }
 
 impl CodeBuffer {
     pub fn new(buf: String) -> Self {
-        Self {
-            lines: buf.lines().map(|line| line.to_string()).collect(),
-        }
+        Self { lines: lines(buf) }
     }
 
     pub fn insert(&mut self, c: char, x: usize, y: usize) {
@@ -17,6 +17,10 @@ impl CodeBuffer {
         self.lines[y].insert_str(x, s);
     }
 
+    pub fn insert_line(&mut self) {
+        self.lines.push("".to_string());
+    }
+
     pub fn delete(&mut self, x: usize, y: usize) {
         self.lines[y].remove(x);
     }
@@ -24,7 +28,7 @@ impl CodeBuffer {
     // ２つの行を繋ぐ (間の改行を削除) 関数
     // yには上の行を指定する
     pub fn join_lines(&mut self, y: usize) {
-        if y + 1 < self.lines.len() {
+        if y + 1 < self.line_count() {
             let combined = self.lines[y].clone() + &self.lines[y + 1];
             self.lines[y] = combined;
             self.lines.remove(y + 1);
