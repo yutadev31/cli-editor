@@ -23,6 +23,7 @@ pub struct Editor {
     mode: EditorMode,
     cursor: EditorCursor,
     offset: Vec2<usize>,
+    key_buf: Option<char>,
 }
 
 impl Editor {
@@ -121,28 +122,51 @@ impl Editor {
         let (cursor_x, cursor_y) = self.cursor.get_display(&self.buf);
 
         match self.mode {
-            EditorMode::Normal => match evt {
-                Event::Key(Key::Char('i')) => {
-                    self.mode = EditorMode::Insert;
+            EditorMode::Normal => {
+                if let Some(c) = self.key_buf {
+                    self.key_buf = None;
+                    match c {
+                        'g' => match evt{
+                            Event::Key(Key::Char('g')) => {
+                                self.cursor.move_y_to(&self.buf, 0);
+                            }
+                            _ => {}
+                        }
+                        _ => {}
+                    }
+
+                    return 0;
                 }
-                Event::Key(Key::Char('q')) => return 1,
-                Event::Key(Key::Char('h')) => {
-                    self.cursor.move_by(&self.buf, -1, 0);
+
+                match evt {
+                    Event::Key(Key::Char('i')) => {
+                        self.mode = EditorMode::Insert;
+                    }
+                    Event::Key(Key::Char('q')) => return 1,
+                    Event::Key(Key::Char('h')) => {
+                        self.cursor.move_by(&self.buf, -1, 0);
+                    }
+                    Event::Key(Key::Char('j')) => {
+                        self.cursor.move_by(&self.buf, 0, 1);
+                    }
+                    Event::Key(Key::Char('k')) => {
+                        self.cursor.move_by(&self.buf, 0, -1);
+                    }
+                    Event::Key(Key::Char('l')) => {
+                        self.cursor.move_by(&self.buf, 1, 0);
+                    }
+                    Event::Key(Key::Char('G')) => {
+                        self.cursor.move_y_to(&self.buf, self.buf.line_count() - 1);
+                    }
+                    Event::Key(Key::Ctrl('w')) => write(path, self.buf.to_string()).unwrap(),
+                    Event::Key(Key::Char(':')) => {
+                        self.mode = EditorMode::Command;
+                    }
+                    Event::Key(Key::Char(c)) => {
+                        self.key_buf = Some(c);
+                    }
+                    _ => {}
                 }
-                Event::Key(Key::Char('j')) => {
-                    self.cursor.move_by(&self.buf, 0, 1);
-                }
-                Event::Key(Key::Char('k')) => {
-                    self.cursor.move_by(&self.buf, 0, -1);
-                }
-                Event::Key(Key::Char('l')) => {
-                    self.cursor.move_by(&self.buf, 1, 0);
-                }
-                Event::Key(Key::Ctrl('w')) => write(path, self.buf.to_string()).unwrap(),
-                Event::Key(Key::Char(':')) => {
-                    self.mode = EditorMode::Command;
-                }
-                _ => {}
             },
             EditorMode::Insert => match evt {
                 Event::Key(Key::Char('\n')) => {
@@ -211,6 +235,7 @@ impl From<String> for Editor {
             mode: EditorMode::default(),
             cursor: EditorCursor::default(),
             offset: Vec2::default(),
+            key_buf: None,
         }
     }
 }
