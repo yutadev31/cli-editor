@@ -1,4 +1,5 @@
 mod buf;
+mod e_cursor;
 mod mode;
 
 use std::{
@@ -7,19 +8,20 @@ use std::{
     path::PathBuf,
 };
 
+use e_cursor::EditorCursor;
 use mode::EditorMode;
 use termion::{
     clear, color, cursor,
     event::{Event, Key},
 };
-use utils::{cli::terminal_size, types::Direction, types::Vec2};
+use utils::{cli::terminal_size, types::Vec2};
 
 use crate::buf::CodeBuffer;
 
 pub struct Editor {
     buf: CodeBuffer,
     mode: EditorMode,
-    cursor: Vec2<usize>,
+    cursor: EditorCursor,
     offset: Vec2<usize>,
 }
 
@@ -43,6 +45,7 @@ impl Editor {
 
     pub fn draw<T: Write>(&self, stdout: &mut T) {
         let (term_w, term_h) = terminal_size();
+        let (cursor_x, cursor_y) = self.cursor.get_display(&self.buf);
 
         let buf = self.buf.to_string();
         let lines = buf.lines();
@@ -85,8 +88,8 @@ impl Editor {
             stdout,
             " {} {},{}",
             self.mode.to_string(),
-            self.cursor.x,
-            self.cursor.y,
+            cursor_x,
+            cursor_y,
         )
         .unwrap();
         write!(stdout, "{}", color::Bg(color::Reset)).unwrap();
@@ -96,8 +99,8 @@ impl Editor {
             stdout,
             "{}",
             cursor::Goto(
-                (self.cursor.x + 2 - self.offset.x + line_num_w) as u16,
-                (self.cursor.y + 2 - self.offset.y) as u16
+                (cursor_x + 2 - self.offset.x + line_num_w) as u16,
+                (cursor_y + 2 - self.offset.y) as u16
             )
         )
         .unwrap();
@@ -114,58 +117,9 @@ impl Editor {
         self.offset.y = (self.offset.y as isize + y) as usize;
     }
 
-    pub fn cursor_by(&mut self, dir: Direction) {
-        let (_, term_h) = terminal_size();
-        let len_count = self.buf.line_count();
-
-        match dir {
-            Direction::Left => {
-                if self.cursor.x > 0 {
-                    self.cursor.x -= 1;
-                }
-            }
-            Direction::Down => {
-                if self.cursor.y < len_count {
-                    self.cursor.y += 1;
-
-                    if len_count <= self.cursor.y {
-                        self.cursor.y -= 1;
-                        return;
-                    }
-
-                    let line_len = self.buf.line_length(self.cursor.y);
-                    if self.cursor.x > line_len {
-                        self.cursor.x = line_len;
-                    }
-
-                    if self.cursor.y > self.offset.y + term_h - 2 {
-                        self.scroll_by(1);
-                    }
-                }
-            }
-            Direction::Up => {
-                if self.cursor.y > 0 {
-                    self.cursor.y -= 1;
-
-                    let line_len = self.buf.line_length(self.cursor.y);
-                    if self.cursor.x > line_len {
-                        self.cursor.x = line_len;
-                    }
-
-                    if self.offset.y > self.cursor.y {
-                        self.scroll_by(-1);
-                    }
-                }
-            }
-            Direction::Right => {
-                if self.cursor.x < self.buf.line_length(self.cursor.y) {
-                    self.cursor.x += 1;
-                }
-            }
-        }
-    }
-
     pub fn on_event(&mut self, evt: Event, path: PathBuf) -> u8 {
+        let (cursor_x, cursor_y) = self.cursor.get_display(&self.buf);
+
         match self.mode {
             EditorMode::Normal => match evt {
                 Event::Key(Key::Char('i')) => {
@@ -173,16 +127,16 @@ impl Editor {
                 }
                 Event::Key(Key::Char('q')) => return 1,
                 Event::Key(Key::Char('h')) => {
-                    self.cursor_by(Direction::Left);
+                    self.cursor.move_by(&self.buf, -1, 0);
                 }
                 Event::Key(Key::Char('j')) => {
-                    self.cursor_by(Direction::Down);
+                    self.cursor.move_by(&self.buf, 0, 1);
                 }
                 Event::Key(Key::Char('k')) => {
-                    self.cursor_by(Direction::Up);
+                    self.cursor.move_by(&self.buf, 0, -1);
                 }
                 Event::Key(Key::Char('l')) => {
-                    self.cursor_by(Direction::Right);
+                    self.cursor.move_by(&self.buf, 1, 0);
                 }
                 Event::Key(Key::Ctrl('w')) => write(path, self.buf.to_string()).unwrap(),
                 Event::Key(Key::Char(':')) => {
@@ -192,38 +146,44 @@ impl Editor {
             },
             EditorMode::Insert => match evt {
                 Event::Key(Key::Char('\n')) => {
-                    self.buf.split_line(self.cursor.x, self.cursor.y);
-                    self.cursor.y += 1;
-                    self.cursor.x = 0;
+                    if cursor_x < self.buf.line_length(cursor_y) {
+                        self.buf.split_line(cursor_x, cursor_y);
+                        self.cursor.move_by(&self.buf, 0, 1);
+                        self.cursor.move_x_to(&self.buf, 0)
+                    } else {
+                        self.buf.insert_line();
+                        self.cursor.move_by(&self.buf, 0, 1);
+                        self.cursor.move_x_to(&self.buf, 0);
+                    }
                 }
                 Event::Key(Key::Char('\t')) => {
-                    self.buf.insert_str("  ", self.cursor.x, self.cursor.y);
-                    self.cursor.x += 2;
+                    self.buf.insert_str("  ", cursor_x, cursor_y);
+                    self.cursor.move_by(&self.buf, 2, 0);
                 }
                 Event::Key(Key::Char(c)) => {
-                    self.buf.insert(c, self.cursor.x, self.cursor.y);
-                    self.cursor_by(Direction::Right);
+                    self.buf.insert(c, cursor_x, cursor_y);
+                    self.cursor.move_by(&self.buf, 1, 0);
                 }
                 Event::Key(Key::Backspace) => {
-                    if self.cursor.x > 0 {
-                        self.buf.delete(self.cursor.x - 1, self.cursor.y);
-                        self.cursor_by(Direction::Left);
-                    } else if self.cursor.y > 0 {
-                        self.buf.join_lines(self.cursor.y - 1);
-                        self.cursor_by(Direction::Up);
+                    if cursor_x > 0 {
+                        self.buf.delete(cursor_x - 1, cursor_y);
+                        self.cursor.move_by(&self.buf, -1, 0);
+                    } else if cursor_y > 0 {
+                        let line_len = self.buf.line_length(cursor_y - 1);
 
-                        let line_len = self.buf.line_length(self.cursor.y);
-                        self.cursor.x = line_len;
+                        self.cursor.move_by(&self.buf, 0, -1);
+                        self.cursor.move_x_to(&self.buf, line_len);
+                        self.buf.join_lines(cursor_y - 1);
                     }
                 }
                 Event::Key(Key::Delete) => {
-                    let line_len = self.buf.line_length(self.cursor.y);
+                    let line_len = self.buf.line_length(cursor_y);
                     let len_count = self.buf.line_count();
 
-                    if self.cursor.x < line_len {
-                        self.buf.delete(self.cursor.x, self.cursor.y);
-                    } else if self.cursor.y < len_count {
-                        self.buf.join_lines(self.cursor.y);
+                    if cursor_x < line_len {
+                        self.buf.delete(cursor_x, cursor_y);
+                    } else if cursor_y < len_count {
+                        self.buf.join_lines(cursor_y);
                     }
                 }
                 Event::Key(Key::Ctrl('c')) => {
@@ -232,14 +192,12 @@ impl Editor {
                 _ => {}
             },
             EditorMode::Visual => {}
-            EditorMode::Command => {
-                match evt {
-                    Event::Key(Key::Ctrl('c')) => {
-                        self.mode = EditorMode::Normal;
-                    }
-                    _ => {}
+            EditorMode::Command => match evt {
+                Event::Key(Key::Ctrl('c')) => {
+                    self.mode = EditorMode::Normal;
                 }
-            }
+                _ => {}
+            },
         }
 
         0
@@ -251,7 +209,7 @@ impl From<String> for Editor {
         Self {
             buf: CodeBuffer::new(value),
             mode: EditorMode::default(),
-            cursor: Vec2::default(),
+            cursor: EditorCursor::default(),
             offset: Vec2::default(),
         }
     }
