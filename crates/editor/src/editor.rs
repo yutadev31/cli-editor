@@ -24,6 +24,7 @@ pub struct Editor {
     cursor: EditorCursor,
     offset: Vec2<usize>,
     key_buf: Option<char>,
+    visual_start: Vec2<usize>,
 }
 
 impl Editor {
@@ -155,6 +156,10 @@ impl Editor {
                     Event::Key(Key::Char('l')) => {
                         self.cursor.move_by(&self.buf, 1, 0);
                     }
+                    Event::Key(Key::Char('v')) => {
+                        self.mode = EditorMode::Visual;
+                        self.visual_start = Vec2::new(cursor_x, cursor_y);
+                    }
                     Event::Key(Key::Char('G')) => {
                         self.cursor.move_y_to(&self.buf, self.buf.line_count() - 1);
                     }
@@ -215,7 +220,24 @@ impl Editor {
                 }
                 _ => {}
             },
-            EditorMode::Visual => {}
+            EditorMode::Visual => match evt {
+                Event::Key(Key::Char('h')) => {
+                    self.cursor.move_by(&self.buf, -1, 0);
+                }
+                Event::Key(Key::Char('j')) => {
+                    self.cursor.move_by(&self.buf, 0, 1);
+                }
+                Event::Key(Key::Char('k')) => {
+                    self.cursor.move_by(&self.buf, 0, -1);
+                }
+                Event::Key(Key::Char('l')) => {
+                    self.cursor.move_by(&self.buf, 1, 0);
+                }
+                Event::Key(Key::Ctrl('c')) => {
+                    self.mode = EditorMode::Normal;
+                }
+                _ => {}
+            },
             EditorMode::Command => match evt {
                 Event::Key(Key::Ctrl('c')) => {
                     self.mode = EditorMode::Normal;
@@ -236,6 +258,7 @@ impl From<String> for Editor {
             cursor: EditorCursor::default(),
             offset: Vec2::default(),
             key_buf: None,
+            visual_start: Vec2::default(),
         }
     }
 }
