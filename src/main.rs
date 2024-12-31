@@ -39,5 +39,5 @@ fn main() -> Result<()> {
         editor.draw(&mut stdout);
     }
 
-    return Ok(());
+    Ok(())
 }

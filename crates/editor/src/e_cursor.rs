@@ -75,11 +75,6 @@ impl EditorCursor {
         }
     }
 
-    pub fn move_to(&mut self, buf: &CodeBuffer, x: usize, y: usize) {
-        self.move_x_to(buf, x);
-        self.move_y_to(buf, y);
-    }
-
     pub fn get_display(&self, buf: &CodeBuffer) -> (usize, usize) {
         let line_len = buf.line_length(self.y);
         let x = if self.x > line_len { line_len } else { self.x };

@@ -1,3 +1,5 @@
+use std::fmt::{self, Display, Formatter};
+
 use utils::text::lines;
 
 pub struct CodeBuffer {
@@ -51,8 +53,8 @@ impl CodeBuffer {
     }
 }
 
-impl ToString for CodeBuffer {
-    fn to_string(&self) -> String {
-        self.lines.join("\n")
+impl Display for  CodeBuffer {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{}", self.lines.join("\n"))
     }
 }

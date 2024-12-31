@@ -87,7 +87,7 @@ impl Editor {
         write!(
             stdout,
             " {} {},{} {},{}",
-            self.mode.to_string(),
+            self.mode,
             cursor_x,
             cursor_y,
             self.offset.x,
@@ -243,11 +243,8 @@ impl Editor {
                     return 0;
                 }
 
-                match evt {
-                    Event::Key(Key::Ctrl('c')) => {
-                        self.mode = EditorMode::Normal;
-                    }
-                    _ => {}
+                if let Event::Key(Key::Ctrl('c')) = evt {
+                    self.mode = EditorMode::Normal;
                 }
             }
             EditorMode::Command => match evt {
