@@ -25,6 +25,7 @@ pub struct Editor {
     offset: Vec2<usize>,
     key_buf: Option<char>,
     visual_start: Vec2<usize>,
+    cmd_buf: String,
 }
 
 impl Editor {
@@ -108,6 +109,14 @@ impl Editor {
         .unwrap();
 
         match self.mode {
+            EditorMode::Command => {
+                write!(stdout, "{}", cursor::Goto(1, term_h as u16 - 1)).unwrap();
+                write!(stdout, ":{}", self.cmd_buf).unwrap();
+            }
+            _ => {}
+        } 
+
+        match self.mode {
             EditorMode::Insert => write!(stdout, "{}", cursor::SteadyBar).unwrap(),
             _ => write!(stdout, "{}", cursor::SteadyBlock).unwrap(),
         }
@@ -143,7 +152,6 @@ impl Editor {
                     Event::Key(Key::Char('i')) => {
                         self.mode = EditorMode::Insert;
                     }
-                    Event::Key(Key::Char('q')) => return 1,
                     Event::Key(Key::Char('h')) => {
                         self.cursor.move_by(&self.buf, -1, 0);
                     }
@@ -166,6 +174,7 @@ impl Editor {
                     Event::Key(Key::Ctrl('w')) => write(path, self.buf.to_string()).unwrap(),
                     Event::Key(Key::Char(':')) => {
                         self.mode = EditorMode::Command;
+                        self.cmd_buf = String::new();
                     }
                     Event::Key(Key::Char(c)) => {
                         self.key_buf = Some(c);
@@ -239,6 +248,20 @@ impl Editor {
                 _ => {}
             },
             EditorMode::Command => match evt {
+                Event::Key(Key::Char('\n')) => {
+                    match self.cmd_buf.as_str() {
+                        "q" => return 1,
+                        "w" => write(path, self.buf.to_string()).unwrap(),
+                        _ => {}
+                    }
+                    self.mode = EditorMode::Normal;
+                }
+                Event::Key(Key::Backspace) => {
+                    self.cmd_buf.pop();
+                }
+                Event::Key(Key::Char(c)) => {
+                    self.cmd_buf.push(c);
+                }
                 Event::Key(Key::Ctrl('c')) => {
                     self.mode = EditorMode::Normal;
                 }
@@ -259,6 +282,7 @@ impl From<String> for Editor {
             offset: Vec2::default(),
             key_buf: None,
             visual_start: Vec2::default(),
+            cmd_buf: String::new(),
         }
     }
 }
