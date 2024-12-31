@@ -102,6 +102,11 @@ impl Editor {
         )
         .unwrap();
 
+        match self.mode {
+            EditorMode::Insert => write!(stdout, "{}", cursor::SteadyBar).unwrap(),
+            _ => write!(stdout, "{}", cursor::SteadyBlock).unwrap(),
+        }
+
         stdout.flush().unwrap();
     }
 
