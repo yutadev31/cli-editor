@@ -8,7 +8,7 @@ pub struct EditorCursor {
     y: usize,
 }
 
-impl EditorCursor{
+impl EditorCursor {
     pub fn move_by(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>, x: isize, y: isize) {
         let (_, term_h) = terminal_size();
         let buf_len = buf.line_count();

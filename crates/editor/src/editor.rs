@@ -120,7 +120,7 @@ impl Editor {
         stdout.flush().unwrap();
     }
 
-    fn on_event_cursor(&mut self, evt: Event, _cursor_x: usize, cursor_y: usize) {
+    fn on_event_cursor(&mut self, evt: Event, _cursor_x: usize, cursor_y: usize) -> bool{
         if let Some(c) = self.key_buf {
             self.key_buf = None;
             match c {
@@ -128,9 +128,9 @@ impl Editor {
                     Event::Key(Key::Char('g')) => {
                         self.cursor.move_y_to(&self.buf, 0);
                     }
-                    _ => {}
+                    _ => return false
                 }
-                _ => {}
+                _ => return false
             }
         } else if let Event::Key(Key::Char(c)) = evt {
             match c {
@@ -140,10 +140,10 @@ impl Editor {
                 'h' => {
                     self.cursor.move_by(&self.buf, &mut self.offset, -1, 0);
                 }
-                'h' => {
+                'j' => {
                     self.cursor.move_by(&self.buf, &mut self.offset, 0, 1);
                 }
-                'j' => {
+                'k' => {
                     self.cursor.move_by(&self.buf, &mut self.offset, 0, -1);
                 }
                 'l' => {
@@ -158,9 +158,11 @@ impl Editor {
                 'G' => {
                     self.cursor.move_y_to(&self.buf, self.buf.line_count() - 1);
                 }
-                _ => {}
+                _ => return false
             }
         }
+
+        true
     }
 
     pub fn on_event(&mut self, evt: Event, path: PathBuf) -> u8 {
@@ -168,7 +170,10 @@ impl Editor {
     
         match self.mode {
             EditorMode::Normal => {
-                self.on_event_cursor(evt.clone(), cursor_x, cursor_y);
+                if self.on_event_cursor(evt.clone(), cursor_x, cursor_y) {
+                    return 0;
+                }
+
                 match evt {
                     Event::Key(Key::Char('v')) => {
                         self.mode = EditorMode::Visual;
@@ -232,24 +237,17 @@ impl Editor {
                 }
                 _ => {}
             },
-            EditorMode::Visual => match evt {
-                Event::Key(Key::Char('h')) => {
-                    self.cursor.move_by(&self.buf, &mut self.offset, -1, 0);
+            EditorMode::Visual => {
+                if self.on_event_cursor(evt.clone(), cursor_x, cursor_y) {
+                    return 0;
                 }
-                Event::Key(Key::Char('j')) => {
-                    self.cursor.move_by(&self.buf, &mut self.offset, 0, 1);
-                }
-                Event::Key(Key::Char('k')) => {
-                    self.cursor.move_by(&self.buf, &mut self.offset, 0, -1);
-                }
-                Event::Key(Key::Char('l')) => {
-                    self.cursor.move_by(&self.buf, &mut self.offset, 1, 0);
-                }
-                Event::Key(Key::Ctrl('c')) => {
-                    self.mode = EditorMode::Normal;
-                }
+
+                match evt {
+                    Event::Key(Key::Ctrl('c')) => {
+                        self.mode = EditorMode::Normal;
+                    }
                 _ => {}
-            },
+            }},
             EditorMode::Command => match evt {
                 Event::Key(Key::Char('\n')) => {
                     match self.cmd_buf.as_str() {
