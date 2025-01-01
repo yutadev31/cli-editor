@@ -185,6 +185,9 @@ impl Editor {
                 }
 
                 match evt {
+                    Event::Key(Key::Char('i')) => {
+                        self.state.set_mode(mode::EditorMode::Insert);
+                    }
                     Event::Key(Key::Char('v')) => {
                         self.state.set_mode(mode::EditorMode::Visual);
                         self.state.visual_start = Vec2::new(cursor_x, cursor_y);
