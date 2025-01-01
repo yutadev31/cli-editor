@@ -22,6 +22,7 @@ impl EditorCommand {
         let mut cmds = Self {
             cmds: HashMap::new(),
         };
+
         cmds.register("q", Box::new(|editor| editor.quit()));
         cmds.register("w", Box::new(|editor| editor.write()));
         cmds.register(
@@ -38,6 +39,60 @@ impl EditorCommand {
                 editor.quit();
             }),
         );
+
+        // Movement
+        cmds.register(
+            "left",
+            Box::new(|editor| {
+                editor
+                    .cursor
+                    .move_by(&editor.buf, &mut editor.offset, -1, 0)
+            }),
+        );
+        cmds.register(
+            "right",
+            Box::new(|editor| editor.cursor.move_by(&editor.buf, &mut editor.offset, 1, 0)),
+        );
+        cmds.register(
+            "up",
+            Box::new(|editor| {
+                editor
+                    .cursor
+                    .move_by(&editor.buf, &mut editor.offset, 0, -1)
+            }),
+        );
+        cmds.register(
+            "down",
+            Box::new(|editor| editor.cursor.move_by(&editor.buf, &mut editor.offset, 0, 1)),
+        );
+        cmds.register(
+            "top",
+            Box::new(|editor| editor.cursor.move_y_to(&editor.buf, 0)),
+        );
+        cmds.register(
+            "bottom",
+            Box::new(|editor| {
+                editor
+                    .cursor
+                    .move_y_to(&editor.buf, editor.buf.line_count() - 1)
+            }),
+        );
+        cmds.register(
+            "line_start",
+            Box::new(|editor| editor.cursor.move_x_to(&editor.buf, 0)),
+        );
+        cmds.register(
+            "line_end",
+            Box::new(|editor| {
+                editor.cursor.move_x_to(
+                    &editor.buf,
+                    editor
+                        .buf
+                        .line_length(editor.cursor.get_display(&editor.buf).1),
+                )
+            }),
+        );
+
         cmds
     }
 

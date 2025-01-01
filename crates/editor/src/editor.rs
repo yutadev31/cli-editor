@@ -54,7 +54,7 @@ impl Editor {
 
         write!(stdout, "{}", clear::All).unwrap();
 
-        // 行番号を表示
+        // Draw line numbers
         let len_count = self.state.buf.line_count();
         let line_num_w = len_count.to_string().len();
         let line_numbers: Vec<String> = (1..=len_count)
@@ -65,7 +65,7 @@ impl Editor {
         write!(stdout, "{}", cursor::Goto(1, 2)).unwrap();
         write!(stdout, "{}", line_numbers.join("\r\n")).unwrap();
 
-        // コードを表示
+        // Draw code
         lines
             .skip(self.state.offset.y)
             .take(term_h - 1)
@@ -80,7 +80,7 @@ impl Editor {
                 write!(stdout, "{}", line).unwrap();
             });
 
-        // 情報バーを表示
+        // Draw info bar
         write!(stdout, "{}", cursor::Goto(1, 1)).unwrap();
         write!(stdout, "{}", color::Bg(color::White)).unwrap();
         write!(stdout, "{}", color::Fg(color::Black)).unwrap();
@@ -272,7 +272,8 @@ impl Editor {
             }
             EditorMode::Command => match evt {
                 Event::Key(Key::Char('\n')) => {
-                    self.cmds.run(&self.state.cmd_buf, &mut self.state.clone());
+                    self.cmds
+                        .run(self.state.cmd_buf.as_str(), &mut self.state.clone());
                     self.state.set_mode(mode::EditorMode::Normal);
                 }
                 Event::Key(Key::Backspace) => {
