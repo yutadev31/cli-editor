@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{state::EditorState, Editor};
+use crate::state::EditorState;
 
 pub type Command = Box<dyn Fn(&mut EditorState)>;
 type CommandMap = HashMap<String, Command>;
