@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{state::EditorState, Editor};
 
-type Command = Box<dyn Fn(&mut EditorState)>;
+pub type Command = Box<dyn Fn(&mut EditorState)>;
 type CommandMap = HashMap<String, Command>;
 
 pub struct EditorCommand {
@@ -19,7 +19,9 @@ impl EditorCommand {
     }
 
     pub fn register_default_commands() -> Self {
-        let mut cmds = Self::new();
+        let mut cmds = Self {
+            cmds: HashMap::new(),
+        };
         cmds.register("q", Box::new(|editor| editor.quit()));
         cmds.register("w", Box::new(|editor| editor.write()));
         cmds.register(

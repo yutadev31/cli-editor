@@ -1,6 +1,7 @@
 mod buf;
 mod cmd;
 mod e_cursor;
+mod key;
 mod mode;
 mod state;
 
@@ -25,8 +26,11 @@ pub struct Editor {
 }
 
 impl Editor {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(buf: String, path: Option<PathBuf>) -> Self {
+        Self {
+            cmds: EditorCommand::new(),
+            state: EditorState::new(buf, path),
+        }
     }
 
     pub fn open(path: PathBuf) -> Self {
@@ -36,9 +40,7 @@ impl Editor {
             buf = String::from("\n");
         }
 
-        let mut this = Self::from(buf);
-        this.state.set_path(path);
-        this
+        Self::new(buf, Some(path))
     }
 
     pub fn draw<T: Write>(&self, stdout: &mut T) {
@@ -132,9 +134,6 @@ impl Editor {
             }
         } else if let Event::Key(Key::Char(c)) = evt {
             match c {
-                'i' => {
-                    //self.mode = EditorMode::Insert;
-                }
                 'h' => {
                     self.state
                         .cursor
@@ -295,15 +294,12 @@ impl Editor {
 
 impl Default for Editor {
     fn default() -> Self {
-        Self::from(String::new())
+        Self::new(String::new(), None)
     }
 }
 
 impl From<String> for Editor {
-    fn from(value: String) -> Self {
-        Self {
-            cmds: EditorCommand::new(),
-            state: EditorState::new(value),
-        }
+    fn from(buf: String) -> Self {
+        Self::new(buf, None)
     }
 }

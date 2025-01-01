@@ -2,7 +2,7 @@ use std::{fs::write, path::PathBuf};
 
 use utils::types::Vec2;
 
-use crate::{buf::CodeBuffer, cmd::EditorCommand, e_cursor::EditorCursor, mode::EditorMode};
+use crate::{buf::CodeBuffer, e_cursor::EditorCursor, mode::EditorMode};
 
 #[derive(Clone)]
 pub struct EditorState {
@@ -18,7 +18,7 @@ pub struct EditorState {
 }
 
 impl EditorState {
-    pub fn new(buf: String) -> Self {
+    pub fn new(buf: String, path: Option<PathBuf>) -> Self {
         Self {
             buf: CodeBuffer::new(buf),
             mode: EditorMode::default(),
@@ -27,7 +27,7 @@ impl EditorState {
             key_buf: None,
             visual_start: Vec2::default(),
             cmd_buf: String::new(),
-            path: None,
+            path,
             is_quit: false,
         }
     }

@@ -1,6 +1,6 @@
 use std::fmt::{self, Display, Formatter};
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Hash, Eq, PartialEq)]
 pub enum EditorMode {
     #[default]
     Normal,
@@ -11,12 +11,15 @@ pub enum EditorMode {
 
 impl Display for EditorMode {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", match self {
-            EditorMode::Normal => "Normal".to_string(),
-            EditorMode::Command => "Command".to_string(),
-            EditorMode::Insert => "Insert".to_string(),
-            EditorMode::Visual => "Visual".to_string(),
-        }) 
+        write!(
+            f,
+            "{}",
+            match self {
+                EditorMode::Normal => "Normal".to_string(),
+                EditorMode::Command => "Command".to_string(),
+                EditorMode::Insert => "Insert".to_string(),
+                EditorMode::Visual => "Visual".to_string(),
+            }
+        )
     }
 }
-
