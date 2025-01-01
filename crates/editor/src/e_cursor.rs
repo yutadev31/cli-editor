@@ -2,7 +2,7 @@ use utils::{cli::terminal_size, types::Vec2};
 
 use crate::buf::CodeBuffer;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct EditorCursor {
     x: usize,
     y: usize,

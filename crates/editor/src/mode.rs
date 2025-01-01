@@ -1,6 +1,6 @@
 use std::fmt::{self, Display, Formatter};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub enum EditorMode {
     #[default]
     Normal,

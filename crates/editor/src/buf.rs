@@ -2,6 +2,7 @@ use std::fmt::{self, Display, Formatter};
 
 use utils::text::lines;
 
+#[derive(Clone)]
 pub struct CodeBuffer {
     lines: Vec<String>,
 }
@@ -53,7 +54,7 @@ impl CodeBuffer {
     }
 }
 
-impl Display for  CodeBuffer {
+impl Display for CodeBuffer {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{}", self.lines.join("\n"))
     }
