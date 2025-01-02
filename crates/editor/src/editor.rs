@@ -181,9 +181,6 @@ impl Editor {
                 }
 
                 match evt {
-                    Event::Key(Key::Char('q')) => {
-                        self.state.is_quit = true;
-                    }
                     Event::Key(Key::Char('i')) => {
                         self.state.set_mode(EditorMode::Insert);
                     }
@@ -191,7 +188,6 @@ impl Editor {
                         self.state.set_mode(EditorMode::Visual);
                         self.state.visual_start = Vec2::new(cursor_x, cursor_y);
                     }
-                    Event::Key(Key::Ctrl('w')) => write(path, self.state.buf.to_string()).unwrap(),
                     Event::Key(Key::Char(':')) => {
                         self.state.set_mode(EditorMode::Command);
                         self.state.cmd_buf = String::new();
@@ -273,7 +269,7 @@ impl Editor {
             EditorMode::Command => match evt {
                 Event::Key(Key::Char('\n')) => {
                     self.cmds
-                        .run(self.state.cmd_buf.as_str(), &mut self.state.clone());
+                        .run(self.state.cmd_buf.clone().as_str(), &mut self.state);
                     self.state.set_mode(EditorMode::Normal);
                 }
                 Event::Key(Key::Backspace) => {
