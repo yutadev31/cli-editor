@@ -43,54 +43,35 @@ impl EditorCommand {
         // Movement
         cmds.register(
             "left",
-            Box::new(|editor| {
-                editor
-                    .cursor
-                    .move_by(&editor.buf, &mut editor.offset, -1, 0)
-            }),
+            Box::new(|editor| editor.cursor.cmd_left(&editor.buf, &mut editor.offset)),
         );
         cmds.register(
             "right",
-            Box::new(|editor| editor.cursor.move_by(&editor.buf, &mut editor.offset, 1, 0)),
+            Box::new(|editor| editor.cursor.cmd_right(&editor.buf, &mut editor.offset)),
         );
         cmds.register(
             "up",
-            Box::new(|editor| {
-                editor
-                    .cursor
-                    .move_by(&editor.buf, &mut editor.offset, 0, -1)
-            }),
+            Box::new(|editor| editor.cursor.cmd_up(&editor.buf, &mut editor.offset)),
         );
         cmds.register(
             "down",
-            Box::new(|editor| editor.cursor.move_by(&editor.buf, &mut editor.offset, 0, 1)),
+            Box::new(|editor| editor.cursor.cmd_down(&editor.buf, &mut editor.offset)),
         );
         cmds.register(
             "top",
-            Box::new(|editor| editor.cursor.move_y_to(&editor.buf, 0)),
+            Box::new(|editor| editor.cursor.cmd_top(&editor.buf, &mut editor.offset)),
         );
         cmds.register(
             "bottom",
-            Box::new(|editor| {
-                editor
-                    .cursor
-                    .move_y_to(&editor.buf, editor.buf.line_count() - 1)
-            }),
+            Box::new(|editor| editor.cursor.cmd_bottom(&editor.buf, &mut editor.offset)),
         );
         cmds.register(
             "line_start",
-            Box::new(|editor| editor.cursor.move_x_to(&editor.buf, 0)),
+            Box::new(|editor| editor.cursor.cmd_line_start(&editor.buf)),
         );
         cmds.register(
             "line_end",
-            Box::new(|editor| {
-                editor.cursor.move_x_to(
-                    &editor.buf,
-                    editor
-                        .buf
-                        .line_length(editor.cursor.get_display(&editor.buf).1),
-                )
-            }),
+            Box::new(|editor| editor.cursor.cmd_line_end(&editor.buf)),
         );
 
         cmds

@@ -81,4 +81,38 @@ impl EditorCursor {
 
         (x, self.y)
     }
+
+    pub fn cmd_left(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>) {
+        self.move_by(buf, offset, -1, 0);
+    }
+
+    pub fn cmd_right(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>) {
+        self.move_by(buf, offset, 1, 0);
+    }
+
+    pub fn cmd_up(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>) {
+        self.move_by(buf, offset, 0, -1);
+    }
+
+    pub fn cmd_down(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>) {
+        self.move_by(buf, offset, 0, 1);
+    }
+
+    pub fn cmd_top(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>) {
+        self.move_y_to(buf, 0);
+        offset.y = 0;
+    }
+
+    pub fn cmd_bottom(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>) {
+        self.move_y_to(buf, buf.line_count() - 1);
+        offset.y = buf.line_count() - 1;
+    }
+
+    pub fn cmd_line_start(&mut self, buf: &CodeBuffer) {
+        self.move_x_to(buf, 0);
+    }
+
+    pub fn cmd_line_end(&mut self, buf: &CodeBuffer) {
+        self.move_x_to(buf, buf.line_length(self.y));
+    }
 }

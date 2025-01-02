@@ -21,7 +21,7 @@ impl CodeBuffer {
     }
 
     pub fn insert_line(&mut self) {
-        self.lines.push("".to_string());
+        self.lines.push(String::new());
     }
 
     pub fn delete(&mut self, x: usize, y: usize) {

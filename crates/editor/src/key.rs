@@ -37,8 +37,7 @@ impl EditorKeys {
             keys: HashMap::new(),
         };
 
-        // Normal mode -> Other modes
-        keys.n_register(vec![Key::Char('v')], "visual");
+        // Normal mode -> Command mode
         keys.n_register(vec![Key::Char(':')], "command");
 
         // Insert mode -> Normal mode
@@ -53,7 +52,7 @@ impl EditorKeys {
         keys.register(EditorMode::Command, vec![Key::Ctrl('c')], "normal");
         keys.register(EditorMode::Command, vec![Key::Esc], "normal");
 
-        // Movement
+        // Movement (Cursor keys)
         keys.nv_register(vec![Key::Char('h')], "left");
         keys.nv_register(vec![Key::Char('j')], "down");
         keys.nv_register(vec![Key::Char('k')], "up");
