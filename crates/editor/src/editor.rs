@@ -1,9 +1,6 @@
-mod buf;
 mod cmd;
-mod e_cursor;
 mod key;
-mod mode;
-mod state;
+mod states;
 
 use std::{
     fs::{read_to_string, write},
@@ -12,8 +9,8 @@ use std::{
 };
 
 use cmd::EditorCommand;
-use mode::EditorMode;
-use state::EditorState;
+use states::mode::EditorMode;
+use states::EditorState;
 use termion::{
     clear, color, cursor,
     event::{Event, Key},
@@ -185,15 +182,15 @@ impl Editor {
 
                 match evt {
                     Event::Key(Key::Char('i')) => {
-                        self.state.set_mode(mode::EditorMode::Insert);
+                        self.state.set_mode(EditorMode::Insert);
                     }
                     Event::Key(Key::Char('v')) => {
-                        self.state.set_mode(mode::EditorMode::Visual);
+                        self.state.set_mode(EditorMode::Visual);
                         self.state.visual_start = Vec2::new(cursor_x, cursor_y);
                     }
                     Event::Key(Key::Ctrl('w')) => write(path, self.state.buf.to_string()).unwrap(),
                     Event::Key(Key::Char(':')) => {
-                        self.state.set_mode(mode::EditorMode::Command);
+                        self.state.set_mode(EditorMode::Command);
                         self.state.cmd_buf = String::new();
                     }
                     Event::Key(Key::Char(c)) => {
@@ -257,7 +254,7 @@ impl Editor {
                     }
                 }
                 Event::Key(Key::Ctrl('c')) => {
-                    self.state.set_mode(mode::EditorMode::Normal);
+                    self.state.set_mode(EditorMode::Normal);
                 }
                 _ => {}
             },
@@ -267,14 +264,14 @@ impl Editor {
                 }
 
                 if let Event::Key(Key::Ctrl('c')) = evt {
-                    self.state.set_mode(mode::EditorMode::Normal);
+                    self.state.set_mode(EditorMode::Normal);
                 }
             }
             EditorMode::Command => match evt {
                 Event::Key(Key::Char('\n')) => {
                     self.cmds
                         .run(self.state.cmd_buf.as_str(), &mut self.state.clone());
-                    self.state.set_mode(mode::EditorMode::Normal);
+                    self.state.set_mode(EditorMode::Normal);
                 }
                 Event::Key(Key::Backspace) => {
                     self.state.cmd_buf.pop();
@@ -283,7 +280,7 @@ impl Editor {
                     self.state.cmd_buf.push(c);
                 }
                 Event::Key(Key::Ctrl('c')) => {
-                    self.state.set_mode(mode::EditorMode::Normal);
+                    self.state.set_mode(EditorMode::Normal);
                 }
                 _ => {}
             },

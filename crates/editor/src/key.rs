@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use termion::event::Key;
 
-use crate::mode::EditorMode;
+use crate::states::mode::EditorMode;
 
 type KeyMap = HashMap<(EditorMode, Vec<Key>), String>;
 

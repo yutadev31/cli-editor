@@ -1,8 +1,13 @@
 use std::{fs::write, path::PathBuf};
 
+use buf::CodeBuffer;
+use cursor::EditorCursor;
+use mode::EditorMode;
 use utils::types::Vec2;
 
-use crate::{buf::CodeBuffer, e_cursor::EditorCursor, mode::EditorMode};
+pub mod buf;
+pub mod cursor;
+pub mod mode;
 
 #[derive(Clone)]
 pub struct EditorState {

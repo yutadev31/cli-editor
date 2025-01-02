@@ -1,6 +1,6 @@
 use utils::{cli::terminal_size, types::Vec2};
 
-use crate::{buf::CodeBuffer, cmd::EditorCommand};
+use crate::{cmd::EditorCommand, states::buf::CodeBuffer};
 
 #[derive(Default, Clone)]
 pub struct EditorCursor {
@@ -117,13 +117,37 @@ impl EditorCursor {
     }
 
     pub fn register_cmds(cmds: &mut EditorCommand) {
-        cmds.register("left", Box::new(|editor| editor.cursor.cmd_left(&editor.buf, &mut editor.offset)));
-        cmds.register("right", Box::new(|editor| editor.cursor.cmd_right(&editor.buf, &mut editor.offset)));
-        cmds.register("up", Box::new(|editor| editor.cursor.cmd_up(&editor.buf, &mut editor.offset)));
-        cmds.register("down", Box::new(|editor| editor.cursor.cmd_down(&editor.buf, &mut editor.offset)));
-        cmds.register("top", Box::new(|editor| editor.cursor.cmd_top(&editor.buf, &mut editor.offset)));
-        cmds.register("bottom", Box::new(|editor| editor.cursor.cmd_bottom(&editor.buf, &mut editor.offset)));
-        cmds.register("line_start", Box::new(|editor| editor.cursor.cmd_line_start(&editor.buf)));
-        cmds.register("line_end", Box::new(|editor| editor.cursor.cmd_line_end(&editor.buf)));
+        cmds.register(
+            "left",
+            Box::new(|editor| editor.cursor.cmd_left(&editor.buf, &mut editor.offset)),
+        );
+        cmds.register(
+            "right",
+            Box::new(|editor| editor.cursor.cmd_right(&editor.buf, &mut editor.offset)),
+        );
+        cmds.register(
+            "up",
+            Box::new(|editor| editor.cursor.cmd_up(&editor.buf, &mut editor.offset)),
+        );
+        cmds.register(
+            "down",
+            Box::new(|editor| editor.cursor.cmd_down(&editor.buf, &mut editor.offset)),
+        );
+        cmds.register(
+            "top",
+            Box::new(|editor| editor.cursor.cmd_top(&editor.buf, &mut editor.offset)),
+        );
+        cmds.register(
+            "bottom",
+            Box::new(|editor| editor.cursor.cmd_bottom(&editor.buf, &mut editor.offset)),
+        );
+        cmds.register(
+            "line_start",
+            Box::new(|editor| editor.cursor.cmd_line_start(&editor.buf)),
+        );
+        cmds.register(
+            "line_end",
+            Box::new(|editor| editor.cursor.cmd_line_end(&editor.buf)),
+        );
     }
 }
