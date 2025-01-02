@@ -106,4 +106,8 @@ impl EditorKeys {
 
         keys
     }
+
+    pub fn get(&self, mode: EditorMode, key: Vec<Key>) -> Option<&String> {
+        self.keys.get(&(mode, key))
+    }
 }

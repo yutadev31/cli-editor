@@ -1,5 +1,9 @@
 use std::fmt::{self, Display, Formatter};
 
+use crate::cmd::EditorCommand;
+
+use super::EditorState;
+
 #[derive(Default, Clone, Hash, Eq, PartialEq)]
 pub enum EditorMode {
     #[default]
@@ -7,6 +11,27 @@ pub enum EditorMode {
     Command,
     Insert,
     Visual,
+}
+
+impl EditorMode {
+    pub fn register_cmds(cmds: &mut EditorCommand) {
+        cmds.register(
+            "normal",
+            Box::new(|editor| editor.set_mode(EditorMode::Normal)),
+        );
+        cmds.register(
+            "command",
+            Box::new(|editor| editor.set_mode(EditorMode::Command)),
+        );
+        cmds.register(
+            "insert_before",
+            Box::new(|editor| editor.set_mode(EditorMode::Insert)),
+        );
+        cmds.register(
+            "visual",
+            Box::new(|editor| editor.set_mode(EditorMode::Visual)),
+        );
+    }
 }
 
 impl Display for EditorMode {

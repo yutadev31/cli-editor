@@ -5,6 +5,7 @@ mod states;
 use std::{fs::read_to_string, io::Write, path::PathBuf};
 
 use cmd::EditorCommand;
+use key::EditorKeys;
 use states::mode::EditorMode;
 use states::EditorState;
 use termion::{
@@ -15,6 +16,7 @@ use utils::{cli::terminal_size, types::Vec2};
 
 pub struct Editor {
     cmds: EditorCommand,
+    keys: EditorKeys,
     state: EditorState,
 }
 
@@ -22,6 +24,7 @@ impl Editor {
     pub fn new(buf: String, path: Option<PathBuf>) -> Self {
         Self {
             cmds: EditorCommand::new(),
+            keys: EditorKeys::new(),
             state: EditorState::new(buf, path),
         }
     }
@@ -170,30 +173,18 @@ impl Editor {
     pub fn on_event(&mut self, evt: Event) -> bool {
         let (cursor_x, cursor_y) = self.state.cursor.get_display(&self.state.buf);
 
-        match self.state.get_mode() {
-            EditorMode::Normal => {
-                if self.on_event_cursor(evt.clone(), cursor_x, cursor_y) {
+        match evt {
+            Event::Key(key) => {
+                let cmd = self.keys.get(EditorMode::Normal, vec![key]);
+                if let Some(cmd) = cmd {
+                    self.cmds.run(cmd, &mut self.state);
                     return self.state.is_quit;
                 }
-
-                match evt {
-                    Event::Key(Key::Char('i')) => {
-                        self.state.set_mode(EditorMode::Insert);
-                    }
-                    Event::Key(Key::Char('v')) => {
-                        self.state.set_mode(EditorMode::Visual);
-                        self.state.visual_start = Vec2::new(cursor_x, cursor_y);
-                    }
-                    Event::Key(Key::Char(':')) => {
-                        self.state.set_mode(EditorMode::Command);
-                        self.state.cmd_buf = String::new();
-                    }
-                    Event::Key(Key::Char(c)) => {
-                        self.state.set_key_buf(Some(c));
-                    }
-                    _ => {}
-                }
             }
+            _ => {}
+        }
+
+        match self.state.get_mode() {
             EditorMode::Insert => match evt {
                 Event::Key(Key::Char('\n')) => {
                     if cursor_x < self.state.buf.line_length(cursor_y) {
@@ -253,15 +244,6 @@ impl Editor {
                 }
                 _ => {}
             },
-            EditorMode::Visual => {
-                if self.on_event_cursor(evt.clone(), cursor_x, cursor_y) {
-                    return self.state.is_quit;
-                }
-
-                if let Event::Key(Key::Ctrl('c')) = evt {
-                    self.state.set_mode(EditorMode::Normal);
-                }
-            }
             EditorMode::Command => match evt {
                 Event::Key(Key::Char('\n')) => {
                     self.cmds
@@ -279,6 +261,8 @@ impl Editor {
                 }
                 _ => {}
             },
+
+            _ => {}
         }
 
         self.state.is_quit
