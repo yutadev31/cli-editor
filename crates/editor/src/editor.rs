@@ -2,11 +2,7 @@ mod cmd;
 mod key;
 mod states;
 
-use std::{
-    fs::{read_to_string, write},
-    io::Write,
-    path::PathBuf,
-};
+use std::{fs::read_to_string, io::Write, path::PathBuf};
 
 use cmd::EditorCommand;
 use states::mode::EditorMode;
@@ -171,7 +167,7 @@ impl Editor {
         true
     }
 
-    pub fn on_event(&mut self, evt: Event, path: PathBuf) -> bool {
+    pub fn on_event(&mut self, evt: Event) -> bool {
         let (cursor_x, cursor_y) = self.state.cursor.get_display(&self.state.buf);
 
         match self.state.get_mode() {
