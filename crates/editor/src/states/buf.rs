@@ -52,6 +52,10 @@ impl CodeBuffer {
     pub fn line_length(&self, line: usize) -> usize {
         self.lines[line].len()
     }
+
+    pub fn get_lines(&self) -> Vec<String> {
+        self.lines.clone()
+    }
 }
 
 impl Display for CodeBuffer {

@@ -1,4 +1,5 @@
 mod cmd;
+mod draw;
 mod key;
 mod states;
 
@@ -9,6 +10,7 @@ use std::{
 };
 
 use cmd::EditorCommand;
+use draw::EditorDraw;
 use states::mode::EditorMode;
 use states::EditorState;
 use termion::{
@@ -20,6 +22,7 @@ use utils::{cli::terminal_size, types::Vec2};
 pub struct Editor {
     cmds: EditorCommand,
     state: EditorState,
+    draw: EditorDraw,
 }
 
 impl Editor {
@@ -27,6 +30,7 @@ impl Editor {
         Self {
             cmds: EditorCommand::new(),
             state: EditorState::new(buf, path),
+            draw: EditorDraw { number: true },
         }
     }
 
@@ -54,28 +58,17 @@ impl Editor {
         // Draw line numbers
         let len_count = self.state.buf.line_count();
         let line_num_w = len_count.to_string().len();
-        let line_numbers: Vec<String> = (1..=len_count)
-            .skip(self.state.offset.y)
-            .take(term_h - 1)
-            .map(|x| x.to_string())
-            .collect();
-        write!(stdout, "{}", cursor::Goto(1, 2)).unwrap();
-        write!(stdout, "{}", line_numbers.join("\r\n")).unwrap();
+        // let line_numbers: Vec<String> = (1..=len_count)
+        //     .skip(self.state.offset.y)
+        //     .take(term_h - 1)
+        //     .map(|x| x.to_string())
+        //     .collect();
+        // write!(stdout, "{}", cursor::Goto(1, 2)).unwrap();
+        // write!(stdout, "{}", line_numbers.join("\r\n")).unwrap();
 
-        // Draw code
-        lines
-            .skip(self.state.offset.y)
-            .take(term_h - 1)
-            .enumerate()
-            .for_each(|(index, line)| {
-                write!(
-                    stdout,
-                    "{}",
-                    cursor::Goto(2 + line_num_w as u16, 2 + index as u16)
-                )
-                .unwrap();
-                write!(stdout, "{}", line).unwrap();
-            });
+        // // Draw code
+
+        self.draw.draw(stdout, &self.state);
 
         // Draw info bar
         write!(stdout, "{}", cursor::Goto(1, 1)).unwrap();
