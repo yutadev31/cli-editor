@@ -9,5 +9,5 @@ path = "src/editor.rs"
 [dependencies]
 anyhow = { workspace = true }
 chrono = { workspace = true }
-termion = { workspace = true }
 utils = { path = "../utils" }
+crossterm = { workspace = true }

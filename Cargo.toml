@@ -4,7 +4,7 @@ members = ["crates/editor", "crates/utils"]
 [workspace.dependencies]
 anyhow = "1.0.95"
 chrono = "0.4.39"
-termion = "4.0.3"
+crossterm = "0.28.1"
 
 [package]
 name = "ce"
@@ -12,7 +12,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+crossterm = { workspace = true }
 anyhow = { workspace = true }
-termion = { workspace = true }
+utils = { path = "crates/utils" }
 editor = { path = "crates/editor" }
 clap = { version = "4.5.23", features = ["derive"] }

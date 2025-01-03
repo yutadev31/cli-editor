@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use termion::event::Key;
+use crossterm::event::{KeyCode, KeyModifiers};
+use utils::types::Key;
 
 use crate::states::mode::EditorMode;
 
@@ -107,7 +108,8 @@ impl EditorKeys {
         keys
     }
 
-    pub fn get(&self, mode: EditorMode, key: Vec<Key>) -> Option<&String> {
-        self.keys.get(&(mode, key))
+    pub fn get(&self, mode: EditorMode, keys: Vec<(KeyCode, KeyModifiers)>) -> Option<&String> {
+        self.keys
+            .get(&(mode, keys.iter().map(|key| Key::from(*key)).collect()))
     }
 }

@@ -1,3 +1,4 @@
+use anyhow::Result;
 use utils::{cli::terminal_size, types::Vec2};
 
 use crate::{cmd::EditorCommand, states::buf::CodeBuffer};
@@ -9,8 +10,14 @@ pub struct EditorCursor {
 }
 
 impl EditorCursor {
-    pub fn move_by(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>, x: isize, y: isize) {
-        let (_, term_h) = terminal_size();
+    pub fn move_by(
+        &mut self,
+        buf: &CodeBuffer,
+        offset: &mut Vec2<usize>,
+        x: isize,
+        y: isize,
+    ) -> Result<()> {
+        let (_, term_h) = terminal_size()?;
         let term_h = term_h - 1;
         let buf_len = buf.line_count();
         let line_len = buf.line_length(self.y);
@@ -54,6 +61,8 @@ impl EditorCursor {
                 offset.y = self.y - term_h + 1;
             }
         }
+
+        Ok(())
     }
 
     pub fn move_x_to(&mut self, buf: &CodeBuffer, x: usize) {
@@ -84,19 +93,19 @@ impl EditorCursor {
     }
 
     pub fn cmd_left(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>) {
-        self.move_by(buf, offset, -1, 0);
+        let _ = self.move_by(buf, offset, -1, 0);
     }
 
     pub fn cmd_right(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>) {
-        self.move_by(buf, offset, 1, 0);
+        let _ = self.move_by(buf, offset, 1, 0);
     }
 
     pub fn cmd_up(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>) {
-        self.move_by(buf, offset, 0, -1);
+        let _ = self.move_by(buf, offset, 0, -1);
     }
 
     pub fn cmd_down(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>) {
-        self.move_by(buf, offset, 0, 1);
+        let _ = self.move_by(buf, offset, 0, 1);
     }
 
     pub fn cmd_top(&mut self, buf: &CodeBuffer, offset: &mut Vec2<usize>) {

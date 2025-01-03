@@ -2,9 +2,9 @@ use std::{fs::write, path::PathBuf};
 
 use buf::CodeBuffer;
 use chrono::{DateTime, Utc};
+use crossterm::event::{KeyCode, KeyModifiers};
 use cursor::EditorCursor;
 use mode::EditorMode;
-use termion::event::Key;
 use utils::types::Vec2;
 
 pub mod buf;
@@ -17,7 +17,7 @@ pub struct EditorState {
     mode: EditorMode,
     pub cursor: EditorCursor,
     pub offset: Vec2<usize>,
-    key_buf: Vec<(DateTime<Utc>, Key)>,
+    key_buf: Vec<(DateTime<Utc>, (KeyCode, KeyModifiers))>,
     pub visual_start: Vec2<usize>,
     pub cmd_buf: String,
     path: Option<PathBuf>,
@@ -55,7 +55,7 @@ impl EditorState {
         self.path.clone()
     }
 
-    pub fn push_key(&mut self, key: Key) {
+    pub fn push_key(&mut self, key: (KeyCode, KeyModifiers)) {
         self.key_buf.push((Utc::now(), key));
     }
 
@@ -63,7 +63,7 @@ impl EditorState {
         self.key_buf.clear();
     }
 
-    pub fn get_keys(&self) -> Vec<Key> {
+    pub fn get_keys(&self) -> Vec<(KeyCode, KeyModifiers)> {
         self.key_buf
             .iter()
             .filter_map(|(time, key)| {
