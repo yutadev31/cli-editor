@@ -119,7 +119,7 @@ impl Editor {
 
         match evt {
             Event::Key(key) => {
-                let cmd = self.keys.get(EditorMode::Normal, vec![key]);
+                let cmd = self.keys.get(self.state.get_mode(), vec![key]);
                 if let Some(cmd) = cmd {
                     self.cmds.run(cmd, &mut self.state);
                     return self.state.is_quit;
