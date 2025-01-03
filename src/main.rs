@@ -33,9 +33,9 @@ fn main() -> Result<()> {
     editor.draw(&mut stdout);
 
     for evt in stdin.events() {
-        if editor.on_event(evt.unwrap(), path.clone()) != 0 {
+        if editor.on_event(evt.unwrap()) {
             return Ok(());
-        };
+        }
         editor.draw(&mut stdout);
     }
 

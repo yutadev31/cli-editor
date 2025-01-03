@@ -2,6 +2,7 @@ use std::fmt::{self, Display, Formatter};
 
 use utils::text::lines;
 
+#[derive(Clone)]
 pub struct CodeBuffer {
     lines: Vec<String>,
 }
@@ -20,7 +21,7 @@ impl CodeBuffer {
     }
 
     pub fn insert_line(&mut self) {
-        self.lines.push("".to_string());
+        self.lines.push(String::new());
     }
 
     pub fn delete(&mut self, x: usize, y: usize) {
@@ -51,9 +52,13 @@ impl CodeBuffer {
     pub fn line_length(&self, line: usize) -> usize {
         self.lines[line].len()
     }
+
+    pub fn get_lines(&self) -> Vec<String> {
+        self.lines.clone()
+    }
 }
 
-impl Display for  CodeBuffer {
+impl Display for CodeBuffer {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{}", self.lines.join("\n"))
     }
