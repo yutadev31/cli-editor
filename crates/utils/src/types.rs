@@ -23,6 +23,7 @@ pub enum Key {
     Char(char),
     Ctrl(char),
     Esc,
+    Enter,
 }
 
 impl Key {
@@ -40,6 +41,10 @@ impl Key {
                 (KeyCode::Esc, KeyModifiers::NONE) => true,
                 _ => false,
             },
+            Key::Enter => match key {
+                (KeyCode::Enter, KeyModifiers::NONE) => true,
+                _ => false,
+            },
         }
     }
 }
@@ -47,9 +52,10 @@ impl Key {
 impl From<(KeyCode, KeyModifiers)> for Key {
     fn from(key: (KeyCode, KeyModifiers)) -> Self {
         match key {
-            (KeyCode::Char(c), KeyModifiers::NONE) => Key::Char(c),
+            (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => Key::Char(c),
             (KeyCode::Char(c), KeyModifiers::CONTROL) => Key::Ctrl(c),
             (KeyCode::Esc, KeyModifiers::NONE) => Key::Esc,
+            (KeyCode::Enter, _) => Key::Enter,
             _ => panic!("Invalid key"),
         }
     }
