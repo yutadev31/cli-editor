@@ -12,7 +12,7 @@ use termion::{
     clear, color, cursor,
     event::{Event, Key},
 };
-use utils::{cli::terminal_size, types::Vec2};
+use utils::cli::terminal_size;
 
 pub struct Editor {
     cmds: EditorCommand,
@@ -112,62 +112,6 @@ impl Editor {
         }
 
         stdout.flush().unwrap();
-    }
-
-    fn on_event_cursor(&mut self, evt: Event, _cursor_x: usize, cursor_y: usize) -> bool {
-        let key_buf = self.state.get_key_buf();
-
-        if let Some(c) = key_buf {
-            self.state.set_key_buf(None);
-            match c {
-                'g' => match evt {
-                    Event::Key(Key::Char('g')) => {
-                        self.state.cursor.move_y_to(&self.state.buf, 0);
-                    }
-                    _ => return false,
-                },
-                _ => return false,
-            }
-        } else if let Event::Key(Key::Char(c)) = evt {
-            match c {
-                'h' => {
-                    self.state
-                        .cursor
-                        .move_by(&self.state.buf, &mut self.state.offset, -1, 0);
-                }
-                'j' => {
-                    self.state
-                        .cursor
-                        .move_by(&self.state.buf, &mut self.state.offset, 0, 1);
-                }
-                'k' => {
-                    self.state
-                        .cursor
-                        .move_by(&self.state.buf, &mut self.state.offset, 0, -1);
-                }
-                'l' => {
-                    self.state
-                        .cursor
-                        .move_by(&self.state.buf, &mut self.state.offset, 1, 0);
-                }
-                '0' => {
-                    self.state.cursor.move_x_to(&self.state.buf, 0);
-                }
-                '$' => {
-                    self.state
-                        .cursor
-                        .move_x_to(&self.state.buf, self.state.buf.line_length(cursor_y));
-                }
-                'G' => {
-                    self.state
-                        .cursor
-                        .move_y_to(&self.state.buf, self.state.buf.line_count() - 1);
-                }
-                _ => return false,
-            }
-        }
-
-        true
     }
 
     pub fn on_event(&mut self, evt: Event) -> bool {

@@ -2,8 +2,6 @@ use std::fmt::{self, Display, Formatter};
 
 use crate::cmd::EditorCommand;
 
-use super::EditorState;
-
 #[derive(Default, Clone, Hash, Eq, PartialEq)]
 pub enum EditorMode {
     #[default]
