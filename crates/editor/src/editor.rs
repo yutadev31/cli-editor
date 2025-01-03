@@ -117,17 +117,6 @@ impl Editor {
     pub fn on_event(&mut self, evt: Event) -> bool {
         let (cursor_x, cursor_y) = self.state.cursor.get_display(&self.state.buf);
 
-        match evt {
-            Event::Key(key) => {
-                let cmd = self.keys.get(self.state.get_mode(), vec![key]);
-                if let Some(cmd) = cmd {
-                    self.cmds.run(cmd, &mut self.state);
-                    return self.state.is_quit;
-                }
-            }
-            _ => {}
-        }
-
         match self.state.get_mode() {
             EditorMode::Insert => match evt {
                 Event::Key(Key::Char('\n')) => {
@@ -183,9 +172,6 @@ impl Editor {
                         self.state.buf.join_lines(cursor_y);
                     }
                 }
-                Event::Key(Key::Ctrl('c')) => {
-                    self.state.set_mode(EditorMode::Normal);
-                }
                 _ => {}
             },
             EditorMode::Command => match evt {
@@ -200,12 +186,20 @@ impl Editor {
                 Event::Key(Key::Char(c)) => {
                     self.state.cmd_buf.push(c);
                 }
-                Event::Key(Key::Ctrl('c')) => {
-                    self.state.set_mode(EditorMode::Normal);
-                }
                 _ => {}
             },
 
+            _ => {}
+        }
+
+        match evt {
+            Event::Key(key) => {
+                let cmd = self.keys.get(self.state.get_mode(), vec![key]);
+                if let Some(cmd) = cmd {
+                    self.cmds.run(cmd, &mut self.state);
+                    return self.state.is_quit;
+                }
+            }
             _ => {}
         }
 
