@@ -114,20 +114,8 @@ impl Editor {
         stdout.flush().unwrap();
     }
 
-    pub fn on_event(&mut self, evt: Event) -> bool {
+    fn on_insert_or_command_mode_event(&mut self, evt: Event) -> bool {
         let (cursor_x, cursor_y) = self.state.cursor.get_display(&self.state.buf);
-
-        match evt {
-            Event::Key(key) => {
-                let cmd = self.keys.get(self.state.get_mode(), vec![key]);
-                if let Some(cmd) = cmd {
-                    self.cmds.run(cmd, &mut self.state);
-                    return self.state.is_quit;
-                } else {
-                }
-            }
-            _ => {}
-        }
 
         match self.state.get_mode() {
             EditorMode::Insert => match evt {
@@ -184,23 +172,49 @@ impl Editor {
                         self.state.buf.join_lines(cursor_y);
                     }
                 }
-                _ => {}
+                _ => return false,
             },
             EditorMode::Command => match evt {
                 Event::Key(Key::Char('\n')) => {
                     self.cmds
                         .run(self.state.cmd_buf.clone().as_str(), &mut self.state);
-                    self.state.set_mode(EditorMode::Normal);
+                    self.cmds.run("normal", &mut self.state);
                 }
                 Event::Key(Key::Backspace) => {
+                    if self.state.cmd_buf.is_empty() {
+                        self.cmds.run("normal", &mut self.state);
+                    }
                     self.state.cmd_buf.pop();
                 }
                 Event::Key(Key::Char(c)) => {
                     self.state.cmd_buf.push(c);
                 }
-                _ => {}
+                _ => return false,
             },
+            _ => return false,
+        }
 
+        true
+    }
+
+    pub fn on_event(&mut self, evt: Event) -> bool {
+        if self.on_insert_or_command_mode_event(evt.clone()) {
+            return self.state.is_quit;
+        };
+
+        match evt {
+            Event::Key(key) => {
+                let mut keys = self.state.get_keys();
+                keys.push(key);
+
+                let cmd = self.keys.get(self.state.get_mode(), keys);
+                if let Some(cmd) = cmd {
+                    self.state.clear_keys();
+                    self.cmds.run(cmd, &mut self.state);
+                } else {
+                    self.state.push_key(key);
+                }
+            }
             _ => {}
         }
 

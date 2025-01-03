@@ -1,8 +1,10 @@
 use std::{fs::write, path::PathBuf};
 
 use buf::CodeBuffer;
+use chrono::{DateTime, Utc};
 use cursor::EditorCursor;
 use mode::EditorMode;
+use termion::event::Key;
 use utils::types::Vec2;
 
 pub mod buf;
@@ -15,7 +17,7 @@ pub struct EditorState {
     mode: EditorMode,
     pub cursor: EditorCursor,
     pub offset: Vec2<usize>,
-    key_buf: Option<char>,
+    key_buf: Vec<(DateTime<Utc>, Key)>,
     pub visual_start: Vec2<usize>,
     pub cmd_buf: String,
     path: Option<PathBuf>,
@@ -29,7 +31,7 @@ impl EditorState {
             mode: EditorMode::default(),
             cursor: EditorCursor::default(),
             offset: Vec2::default(),
-            key_buf: None,
+            key_buf: Vec::new(),
             visual_start: Vec2::default(),
             cmd_buf: String::new(),
             path,
@@ -53,12 +55,28 @@ impl EditorState {
         self.path.clone()
     }
 
-    pub fn set_key_buf(&mut self, key: Option<char>) {
-        self.key_buf = key;
+    pub fn push_key(&mut self, key: Key) {
+        self.key_buf.push((Utc::now(), key));
     }
 
-    pub fn get_key_buf(&self) -> Option<char> {
+    pub fn clear_keys(&mut self) {
+        self.key_buf.clear();
+    }
+
+    pub fn get_keys(&self) -> Vec<Key> {
         self.key_buf
+            .iter()
+            .filter_map(|(time, key)| {
+                let now = Utc::now();
+                let duration = now.signed_duration_since(*time);
+
+                if duration.num_milliseconds() < 300 {
+                    Some(key.clone())
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 
     pub fn write(&self) {

@@ -15,7 +15,10 @@ impl EditorMode {
     pub fn register_cmds(cmds: &mut EditorCommand) {
         cmds.register(
             "normal",
-            Box::new(|editor| editor.set_mode(EditorMode::Normal)),
+            Box::new(|editor| {
+                editor.cmd_buf.clear();
+                editor.set_mode(EditorMode::Normal);
+            }),
         );
         cmds.register(
             "command",
