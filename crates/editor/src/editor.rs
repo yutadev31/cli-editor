@@ -209,21 +209,19 @@ impl Editor {
         if self.on_insert_or_command_mode_event(evt.clone()) {
             return self.state.is_quit;
         };
+        
+        if let Event::Key(key) = evt {
+            let mut keys = self.state.get_keys();
+            keys.push((key.code, key.modifiers));
 
-        match evt {
-            Event::Key(key) => {
-                let mut keys = self.state.get_keys();
-                keys.push((key.code, key.modifiers));
-
-                let cmd = self.keys.get(self.state.get_mode(), keys);
-                if let Some(cmd) = cmd {
-                    self.state.clear_keys();
-                    self.cmds.run(cmd, &mut self.state);
-                } else {
-                    self.state.push_key((key.code, key.modifiers));
-                }
+            let cmd = self.keys.get(self.state.get_mode(), keys);
+            if let Some(cmd) = cmd {
+                self.state.clear_keys();
+                self.cmds.run(cmd, &mut self.state);
+            } else {
+                self.state.push_key((key.code, key.modifiers));
             }
-            _ => {}
+         
         }
 
         self.state.is_quit
